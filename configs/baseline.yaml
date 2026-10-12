@@ -1,0 +1,23 @@
+schema_version: 1
+project_id: SC6019
+workload:
+  # Illustrative defaults: these are not measurements of a live rollup.
+  arrival_process: poisson
+  arrival_rate_tps: 10.0
+  duration_seconds: 60.0
+  seed: 6019
+  size_distribution: fixed
+  fixed_size_bytes: 200
+  content_model: high_entropy
+batching:
+  max_transactions: 100
+  max_raw_bytes: 128000
+  max_wait_seconds: 2.0
+  length_prefix_bytes: 4
+ethereum:
+  profile: eip_7623
+  execution_gas_used: 0
+  effective_gas_price_wei: 1000000000
+  block_interval_seconds: 12.0
+  da_gas_budget_per_block: 30000000
+
