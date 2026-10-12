@@ -20,4 +20,27 @@ ethereum:
   effective_gas_price_wei: 1000000000
   block_interval_seconds: 12.0
   da_gas_budget_per_block: 30000000
-
+compression:
+  algorithm: zlib
+  level: 6
+external_da:
+  # Generic illustrative base profile; it does not represent a real DA network.
+  profile_name: base
+  mock_currency_unit: MOCK_DA_UNIT
+  fixed_fee: "0.001"
+  per_byte_fee: "0.000001"
+  bandwidth_bytes_per_second: 1000000
+  fixed_service_time_seconds: 0.05
+  max_payload_bytes: 1000000
+  queue_capacity_requests: 1000
+  service_concurrency: 4
+  availability_probability: 0.999
+  availability_seed: 6019
+  max_retries: 2
+  initial_backoff_seconds: 0.1
+  backoff_multiplier: 2.0
+  trust_assumptions:
+    operator_model: generic configured operator set
+    data_availability_guarantee: independent Bernoulli success per attempt
+    settlement_relationship: external to Ethereum; not modeled
+    notes: illustrative mock only; no sampling, slashing, or adversarial correlation

@@ -1,3 +1,4 @@
+import math
 from pathlib import Path
 
 import pytest
@@ -5,9 +6,11 @@ from pydantic import ValidationError
 
 from da_rollup_bench.config import (
     EthereumGasProfile,
+    ExternalDAProfileName,
     ProjectConfig,
     SizeDistribution,
     WorkloadConfig,
+    external_da_profile,
     load_config,
 )
 
@@ -26,6 +29,7 @@ def test_baseline_yaml_loads_and_has_stable_fingerprint() -> None:
     assert first == second
     assert first.fingerprint() == second.fingerprint()
     assert len(first.fingerprint()) == 64
+    assert first.fingerprint() == "aeb2da17ebeebc73b0e077f2627876111e7f95d1682a80ff2817378505a8e187"
 
 
 def test_unknown_key_is_rejected() -> None:
@@ -53,3 +57,19 @@ def test_configuration_is_immutable() -> None:
     with pytest.raises(ValidationError):
         config.workload.seed = 7  # type: ignore[misc]
 
+
+@pytest.mark.parametrize("value", [math.inf, -math.inf, math.nan])
+def test_non_finite_rates_are_rejected(value: float) -> None:
+    with pytest.raises(ValidationError):
+        WorkloadConfig(arrival_rate_tps=value)
+
+
+def test_generic_external_da_profiles_are_distinct_and_explicitly_mock() -> None:
+    low = external_da_profile(ExternalDAProfileName.LOW)
+    base = external_da_profile(ExternalDAProfileName.BASE)
+    high = external_da_profile(ExternalDAProfileName.HIGH)
+    assert {low.profile_name, base.profile_name, high.profile_name} == set(ExternalDAProfileName)
+    assert {low.mock_currency_unit, base.mock_currency_unit, high.mock_currency_unit} == {
+        "MOCK_DA_UNIT"
+    }
+    assert low.bandwidth_bytes_per_second < base.bandwidth_bytes_per_second < high.bandwidth_bytes_per_second

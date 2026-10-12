@@ -2,6 +2,8 @@
 
 Status: approved with refinements on 2026-10-12. Project identifier: SC6019. The existing workspace directory name is intentionally unchanged.
 
+Implementation checkpoint (2026-10-12): Milestones 1-6 are implemented and tested. Milestones 7-8 remain proposal-only pending approval; see `docs/MILESTONES_1_6_REVIEW.md` and `docs/MILESTONES_7_8_INTEGRATION_PROPOSAL.md`.
+
 ## 1. Source of truth and interpretation
 
 The course Option 3 brief is the primary requirements source. The project request narrows it into a reproducible three-strategy simulator. Where the request adds rigor without contradicting the brief, the stricter requirement is adopted.

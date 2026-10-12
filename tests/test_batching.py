@@ -55,6 +55,19 @@ def test_overflowing_transaction_moves_to_next_batch() -> None:
     assert not result.rejected
 
 
+def test_exact_byte_capacity_closes_at_triggering_arrival() -> None:
+    config = BatchingConfig(
+        max_transactions=10,
+        max_raw_bytes=7,
+        max_wait_seconds=10,
+        length_prefix_bytes=2,
+    )
+    result = batch_transactions((tx(0, 0.25, b"12345"),), config, flush_time=1)
+    assert len(result.batches[0].raw_payload) == 7
+    assert result.batches[0].closed_at == 0.25
+    assert result.batches[0].close_reason == "max_bytes"
+
+
 def test_individually_oversized_transaction_is_rejected() -> None:
     config = BatchingConfig(
         max_transactions=10,
@@ -88,6 +101,19 @@ def test_wait_limit_closes_at_deadline_not_next_arrival() -> None:
     assert result.batches[0].close_reason == "max_wait"
 
 
+def test_arrival_exactly_at_timer_deadline_starts_next_batch() -> None:
+    config = BatchingConfig(max_transactions=10, max_raw_bytes=100, max_wait_seconds=2)
+    result = batch_transactions(
+        (tx(0, 1.0, b"a"), tx(1, 3.0, b"b")), config, flush_time=4
+    )
+    assert [[item.tx_id for item in batch.transactions] for batch in result.batches] == [
+        ["tx-0"],
+        ["tx-1"],
+    ]
+    assert result.batches[0].closed_at == 3.0
+    assert result.batches[0].close_reason == "max_wait"
+
+
 def test_transaction_conservation_and_raw_byte_accounting() -> None:
     transactions = tuple(tx(i, i * 0.1, bytes([i + 1]) * 3) for i in range(5))
     config = BatchingConfig(
@@ -101,6 +127,29 @@ def test_transaction_conservation_and_raw_byte_accounting() -> None:
         == sum(config.length_prefix_bytes + item.size_bytes for item in batch.transactions)
         for batch in result.batches
     )
+
+
+def test_conservation_with_interspersed_rejections_has_no_duplicates_or_losses() -> None:
+    transactions = (
+        tx(0, 0.0, b"a"),
+        tx(1, 0.1, b"x" * 20),
+        tx(2, 0.2, b"b"),
+        tx(3, 0.3, b"y" * 20),
+    )
+    result = batch_transactions(
+        transactions,
+        BatchingConfig(
+            max_transactions=10,
+            max_raw_bytes=10,
+            max_wait_seconds=5,
+            length_prefix_bytes=2,
+        ),
+        flush_time=1,
+    )
+    terminal_ids = [item.tx_id for batch in result.batches for item in batch.transactions]
+    terminal_ids += [item.transaction.tx_id for item in result.rejected]
+    assert sorted(terminal_ids) == sorted(item.tx_id for item in transactions)
+    assert len(terminal_ids) == len(set(terminal_ids))
 
 
 def test_unordered_arrivals_are_rejected() -> None:
