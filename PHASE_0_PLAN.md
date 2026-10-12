@@ -2,7 +2,9 @@
 
 Status: approved with refinements on 2026-10-12. Project identifier: SC6019. The existing workspace directory name is intentionally unchanged.
 
-Implementation checkpoint (2026-10-12): Milestones 1-6 are implemented and tested. Milestones 7-8 remain proposal-only pending approval; see `docs/MILESTONES_1_6_REVIEW.md` and `docs/MILESTONES_7_8_INTEGRATION_PROPOSAL.md`.
+Implementation checkpoint (2026-10-12): Milestones 1-8 are implemented and tested. See `docs/MILESTONES_1_6_REVIEW.md`, `docs/MILESTONES_7_8_INTEGRATION_PROPOSAL.md`, and `docs/MILESTONES_7_8_IMPLEMENTATION.md`.
+
+Milestone 9 checkpoint (2026-10-12): paired experiment orchestration, deterministic manifests, safe resume, versioned CSV/JSON artifacts, run-level 95% confidence intervals, paired comparisons, three primary experiment configurations, and the CLI are implemented and tested. Dashboard work remains deferred.
 
 ## 1. Source of truth and interpretation
 

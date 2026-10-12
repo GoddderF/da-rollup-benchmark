@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "transactions": [
+    {"tx_id": "tx-a", "arrival_time": 0.0, "payload_hex": "00010203"},
+    {"tx_id": "tx-b", "arrival_time": 0.25, "payload_hex": "41414141"},
+    {"tx_id": "tx-c", "arrival_time": 1.5, "payload_hex": "ff00ff00"},
+    {"tx_id": "tx-d", "arrival_time": 1.75, "payload_hex": "534336303139"}
+  ],
+  "batching": {
+    "max_transactions": 2,
+    "max_raw_bytes": 100,
+    "max_wait_seconds": 1.0,
+    "length_prefix_bytes": 4
+  },
+  "expected_batch_membership": [
+    ["tx-a", "tx-b"],
+    ["tx-c", "tx-d"]
+  ]
+}

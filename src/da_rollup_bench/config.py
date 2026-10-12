@@ -46,6 +46,11 @@ class ExternalDAProfileName(StrEnum):
     HIGH = "high"
 
 
+class TerminationPolicy(StrEnum):
+    DRAIN = "drain"
+    TRUNCATE = "truncate"
+
+
 class WorkloadConfig(StrictModel):
     """Illustrative synthetic workload settings; not empirical network data."""
 
@@ -94,6 +99,7 @@ class EthereumConfig(StrictModel):
     effective_gas_price_wei: Annotated[int, Field(ge=0)] = 1_000_000_000
     block_interval_seconds: Annotated[float, Field(gt=0, allow_inf_nan=False)] = 12.0
     da_gas_budget_per_block: Annotated[int, Field(gt=0)] = 30_000_000
+    queue_capacity_requests: Annotated[int, Field(gt=0)] = 10_000
 
 
 class CompressionConfig(StrictModel):
@@ -139,6 +145,22 @@ class ExternalDAConfig(StrictModel):
         settlement_relationship="external to Ethereum; not modeled",
         notes="illustrative mock only; no sampling, slashing, or adversarial correlation",
     )
+
+
+class SimulationConfig(StrictModel):
+    """Event-engine settings; the measurement window is [0, horizon)."""
+
+    measurement_horizon_seconds: Annotated[
+        float, Field(gt=0, allow_inf_nan=False)
+    ] = 60.0
+    termination_policy: TerminationPolicy = TerminationPolicy.DRAIN
+    ethereum_confirmation_delay_seconds: Annotated[
+        float, Field(ge=0, allow_inf_nan=False)
+    ] = 0.0
+    external_confirmation_delay_seconds: Annotated[
+        float, Field(ge=0, allow_inf_nan=False)
+    ] = 0.0
+    max_events: Annotated[int, Field(gt=0)] = 1_000_000
 
 
 def external_da_profile(name: ExternalDAProfileName | str) -> ExternalDAConfig:
@@ -208,6 +230,7 @@ class ProjectConfig(StrictModel):
     ethereum: EthereumConfig = EthereumConfig()
     compression: CompressionConfig = CompressionConfig()
     external_da: ExternalDAConfig = ExternalDAConfig()
+    simulation: SimulationConfig = SimulationConfig()
 
     def canonical_json(self) -> str:
         """Return stable JSON suitable for manifests and hashing."""

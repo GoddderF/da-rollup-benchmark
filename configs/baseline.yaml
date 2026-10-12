@@ -20,6 +20,7 @@ ethereum:
   effective_gas_price_wei: 1000000000
   block_interval_seconds: 12.0
   da_gas_budget_per_block: 30000000
+  queue_capacity_requests: 10000
 compression:
   algorithm: zlib
   level: 6
@@ -44,3 +45,9 @@ external_da:
     data_availability_guarantee: independent Bernoulli success per attempt
     settlement_relationship: external to Ethereum; not modeled
     notes: illustrative mock only; no sampling, slashing, or adversarial correlation
+simulation:
+  measurement_horizon_seconds: 60.0
+  termination_policy: drain
+  ethereum_confirmation_delay_seconds: 0.0
+  external_confirmation_delay_seconds: 0.0
+  max_events: 1000000

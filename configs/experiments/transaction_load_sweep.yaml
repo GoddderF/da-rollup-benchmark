@@ -1,0 +1,8 @@
+schema_version: 1
+experiment_id: transaction-load-sweep
+preset: development
+base_config: ../baseline.yaml
+strategies: [raw, compressed, mock_external]
+matrix:
+  workload.arrival_rate_tps: [2.0, 10.0, 25.0]
+

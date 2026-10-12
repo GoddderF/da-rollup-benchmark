@@ -15,10 +15,13 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest>=8,<10"]
 
+[project.scripts]
+da-rollup-bench = "da_rollup_bench.cli:main"
+
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.pytest.ini_options]
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers --basetemp=tmp/pytest"
 testpaths = ["tests"]
-

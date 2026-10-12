@@ -29,7 +29,7 @@ def test_baseline_yaml_loads_and_has_stable_fingerprint() -> None:
     assert first == second
     assert first.fingerprint() == second.fingerprint()
     assert len(first.fingerprint()) == 64
-    assert first.fingerprint() == "aeb2da17ebeebc73b0e077f2627876111e7f95d1682a80ff2817378505a8e187"
+    assert first.fingerprint() == "a742bffb611f85e0607fc358cec733173dd2da9076d256ca0552e0ed827da76c"
 
 
 def test_unknown_key_is_rejected() -> None:

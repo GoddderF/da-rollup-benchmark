@@ -1,0 +1,24 @@
+schema_version: 1
+experiment_id: milestone9-validation
+preset: development
+repetitions: 2
+base_config: ../baseline.yaml
+strategies: [raw, compressed, mock_external]
+matrix:
+  # Two explicitly illustrative regimes; these are not calibrated network claims.
+  workload.arrival_process: [fixed]
+  workload.arrival_rate_tps: [0.5, 10.0]
+  workload.duration_seconds: [4.0]
+  workload.fixed_size_bytes: [200]
+  batching.max_transactions: [1]
+  batching.max_wait_seconds: [1.0]
+  ethereum.block_interval_seconds: [1.0]
+  ethereum.da_gas_budget_per_block: [30000]
+  ethereum.queue_capacity_requests: [2]
+  external_da.bandwidth_bytes_per_second: [200.0]
+  external_da.fixed_service_time_seconds: [0.1]
+  external_da.service_concurrency: [1]
+  external_da.queue_capacity_requests: [2]
+  external_da.availability_probability: [1.0]
+  simulation.measurement_horizon_seconds: [4.0]
+  simulation.termination_policy: [truncate]

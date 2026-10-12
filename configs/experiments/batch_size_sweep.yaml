@@ -1,0 +1,8 @@
+schema_version: 1
+experiment_id: batch-size-sweep
+preset: development
+base_config: ../baseline.yaml
+strategies: [raw, compressed, mock_external]
+matrix:
+  batching.max_transactions: [10, 50, 100]
+
