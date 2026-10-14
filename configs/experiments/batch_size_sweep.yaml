@@ -4,5 +4,6 @@ preset: development
 base_config: ../baseline.yaml
 strategies: [raw, compressed, mock_external]
 matrix:
-  batching.max_transactions: [10, 50, 100]
-
+  # At the illustrative 10 TPS baseline and 2s timer these exercise count-bound,
+  # boundary-region, and timer-bound batching respectively.
+  batching.max_transactions: [5, 20, 100]

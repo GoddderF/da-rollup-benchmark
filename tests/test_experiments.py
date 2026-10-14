@@ -74,6 +74,16 @@ def test_paired_experiment_artifacts_statistics_and_resume(tmp_path: Path) -> No
     assert first.executed_runs == 6
     assert first.resumed_runs == 0
     assert len(first.run_records) == 6
+    availability_by_repetition = {
+        repetition: {
+            record["availability_seed"]
+            for record in first.run_records
+            if record["repetition"] == repetition
+        }
+        for repetition in range(2)
+    }
+    assert all(len(seeds) == 1 for seeds in availability_by_repetition.values())
+    assert availability_by_repetition[0] != availability_by_repetition[1]
     assert validate_experiment_artifacts(first.output_directory) == 6
     required = {
         "experiment_manifest.json",
@@ -114,12 +124,26 @@ def test_resume_rejects_incompatible_run_manifest(tmp_path: Path) -> None:
         run_experiment(experiment, tmp_path / "outputs")
 
 
+def test_resume_tolerates_runtime_metadata_lookup_changes(tmp_path: Path) -> None:
+    experiment = write_small_configs(tmp_path, repetitions=1)
+    first = run_experiment(experiment, tmp_path / "outputs")
+    manifest_path = first.output_directory / "experiment_manifest.json"
+    manifest = json.loads(manifest_path.read_text())
+    manifest["runtime"]["code_revision"] = None
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+    resumed = run_experiment(experiment, tmp_path / "outputs")
+    assert resumed.executed_runs == 0
+    assert resumed.resumed_runs == 3
+
+
 def test_primary_experiment_configs_expand(tmp_path: Path) -> None:
     root = Path(__file__).parents[1] / "configs" / "experiments"
     expected = {
         "transaction_load_sweep.yaml": 3,
         "batch_size_sweep.yaml": 3,
         "data_compressibility_sweep.yaml": 3,
+        "external_da_sensitivity.yaml": 8,
     }
     for name, count in expected.items():
         assert len(expand_scenarios(load_experiment(root / name))) == count

@@ -75,6 +75,9 @@ def numeric_metrics(summary: dict[str, Any]) -> dict[str, float | None]:
         "completed_throughput_tps",
         "drained_makespan_throughput_tps",
         "completion_ratio",
+        "rejection_ratio",
+        "failure_ratio",
+        "unfinished_ratio",
         "completed_total",
         "failed_transactions",
         "rejected_transactions",
@@ -90,9 +93,12 @@ def numeric_metrics(summary: dict[str, Any]) -> dict[str, float | None]:
         "raw_serialized_bytes",
         "encoded_logical_bytes",
         "attempted_encoded_bytes",
+        "encoded_to_raw_ratio",
         "average_queue_depth",
         "maximum_queue_depth",
         "resource_utilization",
+        "ethereum_consumed_gas",
+        "ethereum_available_gas_budget",
     )
     metrics: dict[str, float | None] = {
         name: float(summary[name]) if summary.get(name) is not None else None for name in names

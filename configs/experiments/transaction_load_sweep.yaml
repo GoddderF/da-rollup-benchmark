@@ -4,5 +4,7 @@ preset: development
 base_config: ../baseline.yaml
 strategies: [raw, compressed, mock_external]
 matrix:
-  workload.arrival_rate_tps: [2.0, 10.0, 25.0]
-
+  # Illustrative points chosen from the configured 30M-gas/12s resource model:
+  # underload, near-capacity, and overload for Ethereum calldata. They are not
+  # measurements or claimed capacity values for Ethereum mainnet.
+  workload.arrival_rate_tps: [25.0, 250.0, 400.0]

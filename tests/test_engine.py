@@ -214,6 +214,9 @@ def test_exhausted_attempts_fail_and_charge_every_attempt() -> None:
     assert result.transactions[0].state == EntityState.FAILED
     assert summary.publication_attempts == 3
     assert summary.failed_attempts == 3
+    assert summary.failure_ratio == 1
+    assert summary.rejection_ratio == 0
+    assert summary.unfinished_ratio == 0
     # Each attempt costs 2 + 0.1*5 = 2.5 mock units.
     assert summary.total_attempted_cost_by_unit == {"MOCK_DA_UNIT": Decimal("7.5")}
 
@@ -256,7 +259,9 @@ def test_drain_and_truncate_use_window_completions_for_primary_throughput() -> N
     assert truncate.transactions[0].state == EntityState.UNFINISHED
     assert drain.transactions[0].state == EntityState.COMPLETED
     assert truncate_metrics.completed_throughput_tps == 0
+    assert truncate_metrics.unfinished_ratio == 1
     assert drain_metrics.completed_throughput_tps == 0
+    assert drain_metrics.completion_ratio == 1
     assert drain_metrics.drained_makespan_throughput_tps == pytest.approx(1 / 5)
     assert truncate_metrics.total_attempted_cost_by_unit == {
         "MOCK_DA_UNIT": Decimal("2.5")

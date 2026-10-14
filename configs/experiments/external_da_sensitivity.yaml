@@ -1,0 +1,16 @@
+schema_version: 1
+experiment_id: external-da-sensitivity
+preset: final
+base_config: ../baseline.yaml
+strategies: [mock_external]
+matrix:
+  # Supplementary 2x2x2 factorial at 250 offered TPS. With 100-transaction
+  # batches, demand is approximately 2.5 publications/s. A typical batch is
+  # about 20.4 kB, so 20 kB/s gives about 0.93 services/s per slot before
+  # retries; one slot is overloaded and four slots approach capacity.
+  external_da.bandwidth_bytes_per_second: [20000, 1000000]
+  external_da.service_concurrency: [1, 4]
+  # 0.8 is an explicit reliability stress case; 0.999 retains the illustrative
+  # base assumption. Failures are independent Bernoulli trials, not empirical.
+  external_da.availability_probability: [0.8, 0.999]
+  workload.arrival_rate_tps: [250.0]

@@ -1,6 +1,6 @@
 import pytest
 
-from da_rollup_bench.statistics import estimate, paired_comparisons
+from da_rollup_bench.statistics import estimate, numeric_metrics, paired_comparisons
 
 
 def test_student_t_interval_uses_run_level_samples() -> None:
@@ -92,3 +92,17 @@ def test_paired_comparisons_do_not_compare_incompatible_cost_units() -> None:
     assert any(row["metric"] == "completed_throughput_tps" for row in rows)
     assert not any("cost" in row["metric"] for row in rows)
 
+
+def test_dashboard_metrics_include_ratios_gas_and_encoding() -> None:
+    summary = {
+        "rejection_ratio": 0.25,
+        "failure_ratio": 0.0,
+        "unfinished_ratio": 0.5,
+        "encoded_to_raw_ratio": 0.75,
+        "ethereum_consumed_gas": 123,
+        "ethereum_available_gas_budget": 456,
+    }
+    metrics = numeric_metrics(summary)
+    assert metrics["rejection_ratio"] == 0.25
+    assert metrics["encoded_to_raw_ratio"] == 0.75
+    assert metrics["ethereum_consumed_gas"] == 123

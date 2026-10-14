@@ -125,6 +125,18 @@ def _derived_repetition_seed(base_seed: int, experiment: str, scenario: str, rep
     return int.from_bytes(hashlib.sha256(material).digest()[:8], "big") & (2**63 - 1)
 
 
+def _derived_availability_seed(
+    base_seed: int, experiment: str, scenario: str, repetition: int
+) -> int:
+    """Derive an independent, deterministic external-availability RNG stream."""
+
+    material = (
+        f"sc6019:seed-policy-v2:external-availability:{base_seed}:"
+        f"{experiment}:{scenario}:{repetition}"
+    ).encode("utf-8")
+    return int.from_bytes(hashlib.sha256(material).digest()[:8], "big") & (2**63 - 1)
+
+
 def _strategy(name: str, config: ProjectConfig):
     if name == "raw":
         return RawCalldataStrategy(config.ethereum)
@@ -140,6 +152,7 @@ def _experiment_identity(
 ) -> tuple[str, dict[str, Any]]:
     document = {
         "schema_version": ARTIFACT_SCHEMA_VERSION,
+        "seed_derivation_policy": "v2-independent-workload-and-external-availability",
         "experiment_id": loaded.spec.experiment_id,
         "preset": loaded.spec.preset,
         "repetitions": repetitions,
@@ -240,7 +253,13 @@ def run_experiment(
     })
     if root_manifest_path.exists():
         existing = json.loads(root_manifest_path.read_text(encoding="utf-8"))
-        if existing != root_manifest:
+        identity_fields = (
+            "schema_version",
+            "experiment_fingerprint",
+            "resolved_experiment",
+            "ci_method",
+        )
+        if any(existing.get(field) != root_manifest.get(field) for field in identity_fields):
             raise ValueError("existing experiment manifest is incompatible")
     else:
         write_json(root_manifest_path, root_manifest)
@@ -258,6 +277,13 @@ def run_experiment(
             )
             config_data = scenario_config.model_dump(mode="json")
             config_data["workload"]["seed"] = seed
+            availability_seed = _derived_availability_seed(
+                scenario_config.external_da.availability_seed,
+                loaded.spec.experiment_id,
+                scenario_id,
+                repetition,
+            )
+            config_data["external_da"]["availability_seed"] = availability_seed
             config = ProjectConfig.model_validate(config_data)
             transactions = generate_workload(config.workload)
             fingerprint = workload_fingerprint(transactions)
@@ -270,6 +296,7 @@ def run_experiment(
                 "scenario_overrides": overrides,
                 "repetition": repetition,
                 "seed": seed,
+                "availability_seed": availability_seed,
                 "workload_fingerprint": fingerprint,
                 "config_fingerprint": config.fingerprint(),
             }
@@ -302,6 +329,7 @@ def run_experiment(
                     "scenario_overrides": overrides,
                     "repetition": repetition,
                     "seed": seed,
+                    "availability_seed": availability_seed,
                     "strategy_id": strategy.strategy_id,
                     "workload_fingerprint": fingerprint,
                     "config_fingerprint": config.fingerprint(),
@@ -370,19 +398,19 @@ def validate_experiment_artifacts(directory: str | Path) -> int:
         raise ValueError("unsupported experiment manifest schema")
     runs = json.loads((root / "runs.json").read_text(encoding="utf-8"))["runs"]
     for record in runs:
-        identity = {
-            key: record[key]
-            for key in (
-                "experiment_fingerprint",
-                "scenario_id",
-                "scenario_overrides",
-                "repetition",
-                "seed",
-                "strategy_id",
-                "workload_fingerprint",
-                "config_fingerprint",
-            )
-        }
+        identity_keys = [
+            "experiment_fingerprint",
+            "scenario_id",
+            "scenario_overrides",
+            "repetition",
+            "seed",
+            "strategy_id",
+            "workload_fingerprint",
+            "config_fingerprint",
+        ]
+        if "availability_seed" in record:
+            identity_keys.append("availability_seed")
+        identity = {key: record[key] for key in identity_keys}
         validate_artifact_directory(Path(record["artifact_directory"]), identity)
     return len(runs)
 

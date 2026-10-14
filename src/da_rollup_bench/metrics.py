@@ -25,6 +25,9 @@ class MetricsSummary:
     completed_throughput_tps: float
     drained_makespan_throughput_tps: float
     completion_ratio: float
+    rejection_ratio: float
+    failure_ratio: float
+    unfinished_ratio: float
     publication_attempts: int
     failed_attempts: int
     retries: int
@@ -44,6 +47,7 @@ class MetricsSummary:
     attempted_encoded_bytes: int
     raw_framing_overhead_bytes: int
     encoded_overhead_bytes: int
+    encoded_to_raw_ratio: float | None
     average_queue_depth: float
     maximum_queue_depth: int
     resource_utilization: float
@@ -169,6 +173,21 @@ def summarize(result: SimulationResult) -> MetricsSummary:
             len(completed) / makespan_denominator if makespan_denominator > 0 else 0.0
         ),
         completion_ratio=len(completed) / len(result.transactions) if result.transactions else 0.0,
+        rejection_ratio=(
+            state_counts[EntityState.REJECTED] / len(result.transactions)
+            if result.transactions
+            else 0.0
+        ),
+        failure_ratio=(
+            state_counts[EntityState.FAILED] / len(result.transactions)
+            if result.transactions
+            else 0.0
+        ),
+        unfinished_ratio=(
+            state_counts[EntityState.UNFINISHED] / len(result.transactions)
+            if result.transactions
+            else 0.0
+        ),
         publication_attempts=len(attempts),
         failed_attempts=sum(attempt.succeeded is False for attempt in attempts),
         retries=sum(max(0, len(publication.attempts) - 1) for publication in result.publications),
@@ -205,6 +224,7 @@ def summarize(result: SimulationResult) -> MetricsSummary:
         attempted_encoded_bytes=attempted_encoded_bytes,
         raw_framing_overhead_bytes=raw_bytes - logical_bytes,
         encoded_overhead_bytes=encoded_logical_bytes - logical_bytes,
+        encoded_to_raw_ratio=(encoded_logical_bytes / raw_bytes if raw_bytes else None),
         average_queue_depth=result.resource.time_weighted_queue_depth,
         maximum_queue_depth=result.resource.maximum_queue_depth,
         resource_utilization=utilization,
